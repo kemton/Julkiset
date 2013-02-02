@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Julkiset</title>
+        <!-- CDN
+		<link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/jquery.mobile/1.2.0/jquery.mobile-1.2.0.min.css" />		
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+        <script src="https://ajax.aspnetcdn.com/ajax/jquery.mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>-->
+		<link rel="stylesheet" href="jquery.mobile-1.2.0.min.css" />
+		<link rel="stylesheet" href="style.css" />
+		<script src="js/config.js"></script>
+		<script src="js/jquery.min.js"></script>
+        <script src="js/jquery.mobile-1.2.0.min.js"></script>
+    </head>
+    <body>
+        <!-- Home -->
+		<div data-role="page" id="home">
+			<div data-theme="a" data-role="header">
+				<h3>Julkiset Beta 0.4</h3>
+			</div>
+			
+			<div data-role="content">
+				<form id="findRoute" action="routeOptions.html" data-ajax="false">
+					<div data-role="fieldcontain">
+						<fieldset data-role="controlgroup">
+							<label for="textinput1">Mistä:</label>
+							<input id="from" name="from" placeholder="Oma sijainti" value="" type="text" />
+						</fieldset>
+					</div>
+					<div data-role="fieldcontain">
+						<fieldset data-role="controlgroup">
+							<label for="textinput2">Mihin:</label>
+							<input id="to" name="to" placeholder="Kohde" value="" type="text" />
+						</fieldset>
+					</div>
+					<!--<button data-theme="b" data-icon="arrow-r" data-iconpos="right" onclick="findRoute(this.form)">Hae reitti</button>-->
+					<a href="#addressList" data-theme="b" data-role="button" data-rel="dialog" onclick="fromToLoc(this.form)">Hae reitti</a>
+				</form>
+			</div> <!-- /content -->
+			
+			<div data-theme="a" data-role="footer" data-position="fixed">
+				<h3>&copy; 2013 NikoKiuru.com</h3>
+			</div>
+		</div> <!-- /home -->
+		
+		<!-- AddressList -->
+		<div data-role="page" id="addressList">
+			<div data-theme="d" data-role="header">
+				<h3>Vaihtoehdot</h3>
+			</div>
+			<div data-role="content">
+				<ul id="result" data-role="listview">
+					
+				</ul>
+			</div><!-- /content -->
+			<div data-theme="d" data-role="footer" data-position="fixed">
+				<h3></h3>
+			</div>
+		</div><!-- /page -->
+		
+		<script type="text/javascript">	
+			var from = new Object();
+			var to = new Object();
+			
+			function fromToLoc(form, select) {
+				$("#result").empty();
+				key = $("#from").val();
+				from = locOptions(key, 'from');
+			}
+			
+			function locOptions(key, select) {
+				$("#result").append('<li data-role="list-divider">Paikka</li>');
+				var loc = new Object();
+				//$.getJSON("data/"+key+".json",
+				$.getJSON(apiUrl+"request=geocode&format=json&epsg_out=wgs84&key="+key,
+				function(data){
+					$.each(data, function(i, value){
+						$("<li>", {
+							"class": "address",
+							text: value.matchedName+' '+value.details.houseNumber,
+							click: function(){
+								loc.address = value.matchedName;
+								loc.city = value.city;
+								loc.name = value.name;
+								coords = value.coords.split(',');
+								loc.lon = coords[0];
+								loc.lat = coords[1];
+								if (select == 'from') {
+									$("#from").val(loc.address+' '+value.details.houseNumber);
+								} else if (select == 'to') {
+									$("#to").val(loc.address+' '+value.details.houseNumber);
+								}
+								if (select == 'from') {
+									$("#result").empty();
+									key = $("#to").val();
+									to = locOptions(key, 'to');
+								} else {
+									buildAndSubmitForm();
+								}
+							}
+						}).appendTo("#result");
+						$("#result").listview('refresh');
+					});
+				});
+				return loc;
+			}
+			
+			function buildAndSubmitForm() {
+				$("<input/>", {
+					"type": "hidden",
+					"name": "fromLon",
+					"val": from.lon,
+				}).appendTo("#findRoute");
+				$("<input/>", {
+					"type": "hidden",
+					"name": "fromLat",
+					"val": from.lat,
+				}).appendTo("#findRoute");
+				$("<input/>", {
+					"type": "hidden",
+					"name": "toLon",
+					"val": to.lon,
+				}).appendTo("#findRoute");
+				$("<input/>", {
+					"type": "hidden",
+					"name": "toLat",
+					"val": to.lat,
+				}).appendTo("#findRoute");
+				$("#findRoute").submit();
+			}
+		</script>
+    </body>
+</html>
+

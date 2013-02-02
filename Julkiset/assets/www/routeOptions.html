@@ -1,0 +1,304 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Julkiset</title>
+		<!-- Deploying OpenLayers: http://docs.openlayers.org/library/deploying.html -->
+		<link rel="stylesheet" href="jquery.mobile-1.2.0.min.css" />
+		<link rel="stylesheet" href="style.css" />
+		<script src="js/config.js"></script>
+		<script type="text/javascript">
+        		console.firebug=true;//fix the openlayer problem
+		</script>
+		<script src="OpenLayers/OpenLayers.js"></script>
+		<script src="js/jquery.min.js"></script>
+		<script src="js/jquery.mobile-1.2.0.min.js"></script>
+		<style>
+			
+		</style>
+    </head>
+	<body>
+        <!-- Route Options Page -->
+		<div data-role="page" id="routeOptions">
+			<div data-theme="a" data-role="header">
+				<a href="home.html" data-icon="home" data-ajax="false" data-direction="reverse">Etusivu</a>
+				<h3>Julkiset Beta 0.4</h3>
+			</div>
+			
+			<div data-role="content">
+					<ul id="options" data-theme="c" data-role="listview">
+						<li data-role="list-divider">Valitse reittivaihtoehto: <span id="from"></span> - <span id="to"></span></li>
+					</ul>
+			</div> <!-- /content -->
+			
+			<div data-theme="a" data-role="footer" data-position="fixed" data-tap-toggle="false">
+				<h3>&copy; 2013 NikoKiuru.com</h3>
+			</div>
+		</div> <!-- /page -->
+		
+        <!-- Route Legs Page -->
+		<div data-role="page" id="legs">
+			<div data-theme="a" data-role="header">
+				<a onclick="back()" data-icon="home" data-ajax="false" data-direction="reverse">Takaisin</a>
+				<h3>Julkiset Beta 0.4</h3>
+			</div>
+			
+			<div data-role="content">
+				<ul id="routeLegs" data-role="listview">
+					<li data-role="list-divider">Valitse haluamallesi välimatkalle hälytys</li>
+				</ul>
+			</div>
+			
+			<div data-theme="a" data-role="footer" data-position="fixed" data-tap-toggle="false">
+				<h3>&copy; 2013 NikoKiuru.com</h3>
+			</div>
+		</div><!-- /Route Legs Page -->
+		
+        <!-- Route Legs Page -->
+		<div data-role="page" id="routeMap">
+			<div data-role="content" id="fixContent">
+				<div id="map"></div>
+			</div>
+			
+			<div data-theme="a" data-role="footer" data-position="fixed" data-tap-toggle="false">
+				<a onclick="back()" data-icon="home" data-ajax="false" data-direction="reverse">Takaisin</a>
+				<!--<h3>&copy; 2013 NikoKiuru.com</h3>-->
+			</div>
+		</div><!-- /Route Legs Page -->
+		
+		<script type="text/javascript">
+			var from = new Object();
+			var to = new Object();
+			var route = new Object();
+			var leg;
+			
+			$(function(){
+				from.address = decodeURIComponent(urlParam('from')).replace('+',' ');
+				to.address = decodeURIComponent(urlParam('to')).replace('+',' ');
+				
+				$("#from").append(from.address);
+				$("#to").append(to.address);
+				
+				from.lon = urlParam('fromLon');
+				from.lat = urlParam('fromLat');
+				to.lon = urlParam('toLon');
+				to.lat = urlParam('toLat');
+				
+				routeList(from.lon, from.lat, to.lon, to.lat);
+			});
+			
+			function back() {
+				$.mobile.changePage("#routeOptions"); 
+			}
+			
+			// http://www.jquery4u.com/snippets/url-parameters-jquery/
+			function urlParam(name) {
+				var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
+				if (results==null) {
+					return null;
+				} else {
+					return results[1] || 0;
+				}
+			}
+			
+			function routeList(fromLon, fromLat, toLon, toLat) {
+				var list = $("#options");
+				//$.getJSON("data/route.json",
+				$.getJSON(apiUrl+"request=route&format=json&from="+fromLon+","+fromLat+"&to="+toLon+","+toLat+"&epsg_in=wgs84&epsg_out=wgs84",
+				function(data) {
+				leg = data;
+					$.each(data, function(i, value) {
+						$.each(value, function(a, route) {
+							$("<li>", {
+								click: function(){
+									listLegs(i, a);
+								}
+							}).append('<a href="#legs"><p>'+(route.length/1000).toFixed(2)+'km<br />'+getLegs(route.legs)+' <strong>'+(route.duration/60)+'min</strong></p></a>').appendTo(list);
+						});
+					});
+					list.listview('refresh');
+				});
+			}
+			
+			function getLegs(routeLegs) {
+				var type = '';
+				var walkDuration = 0;
+				$.each(routeLegs, function(i, legs) {
+					var arrTime = legs.locs[0].depTime;
+					var arrHours = arrTime.substr(8,2);
+					var arrMinutes = arrTime.substr(10,2);
+					var arrTime = arrHours+':'+arrMinutes;
+					
+					var depTime = legs.locs[legs.locs.length -1].depTime;
+					var depHours = depTime.substr(8,2);
+					var depMinutes = depTime.substr(10,2);
+					var depTime = depHours+':'+depMinutes;
+					if (i==0) {
+						var srartHours = legs.locs[0].arrTime.substr(8,2);
+						var srartMinutes = legs.locs[0].arrTime.substr(10,2);
+						var srartTime = arrHours+':'+arrMinutes;
+						type += '<span style="font-size:150%; font-weight:bold;">'+arrTime+'</span>';
+					}
+					if (legs.type == 'walk') {
+						if (legs.length >= 1000) {legLength = legs.length/1000+'km'} else {legLength = legs.length+'m';}
+						type += '<span style="bottom:0px; margin-left:10px; position:absolute;">'+legLength+'</span>'+typeImage(legs.type); // @author: Joseph Wain (images/walk.png)
+						walkDuration += legs.length;
+					} else {
+						type += '<span style="font-size:150%; font-weight:bold;">'+arrTime+'</span><span style="bottom:0px; margin-left:-35px; position:absolute;">'+legs.locs[0].name+'</span><span class="linecode">'+getVehicleName(legs.code, legs.type)+'</span>'+typeImage(legs.type)+'<span style="font-size:150%; font-weight:bold;">'+depTime+'</span>';
+					}
+					if (i==routeLegs.length-1) {type += '<span style="font-size:150%; font-weight:bold;">'+depTime+'</span>';}
+				});
+				//console.log(walkDuration);
+				return type;
+			}
+			
+			function getVehicleName(code, typeid) {
+				if (typeid == 'walk') {
+					name = '';
+				} else if (typeid == 1 || typeid == 3 || typeid == 4 || typeid == 5 || typeid == 22 || typeid == 25 || typeid == 36 || typeid == 39) {
+					var name = code.substr(2,3);
+				} else if (typeid == 12) {
+					var name = code.substr(4,1)+'-juna';
+				} else {
+					name = typeid;
+				}
+				return name;
+			}
+			
+			// Antaa aina väärän vuoden ja kuukautta ei ollenka, missä vika?
+			function parseDatetime(str) {
+				var yyyy = str.substr(0,4);
+				var mm = str.substr(4,2);
+				var dd = str.substr(6,2);
+				var h = str.substr(8,2);
+				var m = str.substr(10,2);
+				var date = new Date(yyyy,mm,dd);
+				date.setHours(h);
+				date.setMinutes(m);
+				return date;
+			}
+			
+			function listLegs(i, a) {
+				$("#routeLegs").empty();
+				list = $("#routeLegs");
+				$.each(leg[i][a].legs, function(a, val){
+					var arr = val.locs[0].depTime;
+					var h = arr.substr(8,2);
+					var m = arr.substr(10,2);
+					var time = h+':'+m;
+					var fromLon = val.locs[0].coord.x;
+					var fromLat = val.locs[0].coord.y;
+					var toLon = val.locs[val.locs.length-1].coord.x;
+					var toLat = val.locs[val.locs.length-1].coord.y;
+					if (val.code == null) {val.code='';}
+					$("<li>", {
+						//class: 'legs',
+						click: function(){
+							next(fromLon, fromLat, toLon, toLat);
+						}
+					}).append('<a><p><br /><img style="width:30px;height=30px;" src="images/alarm-clock.png" /><span style="font-size:200%; padding: 10px;"><strong>'+time+'</strong></span><span class="linecode">'+getVehicleName(val.code, val.type)+'</span>'+typeImage(val.type)+' <span style="font-size:120%; padding: 10px;"><strong>'+(val.duration/1000).toFixed(2)+'km</strong></span></p></a>').appendTo(list);
+				});
+				
+				list.listview('refresh');
+			}
+			
+			function typeImage(typeid) {
+				var type;
+				if (typeid == 'walk') {
+					type = '<img class="walk" src="images/walk.png" />';
+				} else if (typeid == 1 || typeid == 3 || typeid == 4 || typeid == 5 || typeid == 22 || typeid == 25 || typeid == 36 || typeid == 39) {
+					type = '<img src="images/bus.png" />';
+				} else if (typeid == 6) {
+					type = '<strong>METRO</strong>';
+				} else if (typeid == 12) {
+					type = '<img src="images/train.png" />';
+				} else {
+					type = typeid;
+				}
+				return type;
+			}
+			
+			function next(fromLon, fromLat, toLon, toLat) {
+				var check = false;
+				$.mobile.changePage("#routeMap");
+				//fix the content height AFTER jQuery Mobile has rendered the map page
+				$('#routeMap').live('pageshow',function (){
+					check = fixContentHeight();
+					if (check == true) {
+						initMap(fromLon, fromLat, toLon, toLat);
+					}
+				});
+			}
+			var map;
+			function initMap(fromLon, fromLat, toLon, toLat) {
+				$("#map").empty();
+				map 			   = new OpenLayers.Map("map");
+				fromProjection     = new OpenLayers.Projection("EPSG:4326");   // Transform from WGS 1984
+				toProjection       = new OpenLayers.Projection("EPSG:900913"); // to Spherical Mercator Projection
+				var zoom           = 16;
+				var position       = new OpenLayers.LonLat(from.lon, from.lat).transform( fromProjection, toProjection);
+				//var size		   = new OpenLayers.Size(200,200);
+				// Add OpenStreetMap to layer
+				var mapnik         = new OpenLayers.Layer.OSM();
+				map.addLayer(mapnik);
+				
+				var markers = new OpenLayers.Layer.Markers( "Markers" );
+				map.addLayer(markers);
+				markers.addMarker(new OpenLayers.Marker(position));
+				
+				var vector = new OpenLayers.Layer.Vector();
+				var line = drawRoute(fromLon, fromLat, toLon, toLat);
+				vector.addFeatures([line]);
+				map.addLayers([vector]);
+				
+				map.setCenter(position, zoom);
+			}
+			
+			function drawRoute(fromLon, fromLat, toLon, toLat) {
+				// RouteLine styles
+				var style = {
+					strokeColor: "#00FF00",
+					strokeWidth: 5,
+					strokeDashstyle: "dashdot",
+				};
+				// Start and end point
+				var start_point = new OpenLayers.Geometry.Point(fromLon, fromLat).transform( fromProjection, toProjection);
+				var end_point = new OpenLayers.Geometry.Point(toLon, toLat).transform( fromProjection, toProjection);
+
+				// Make line
+				var geo = new OpenLayers.Geometry.LineString([start_point, end_point]);
+				var line = new OpenLayers.Feature.Vector(geo, null, style);
+				return line;
+			}
+			
+			function fixContentHeight() {
+				var check = false;
+				var footer = $("div[data-role='footer']:visible"),
+					content = $("div[data-role='content']:visible:visible"),
+					viewHeight = $(window).height(),
+					contentHeight = viewHeight - footer.outerHeight();
+
+				if ((content.outerHeight() + footer.outerHeight()) !== viewHeight) {
+					contentHeight -= (content.outerHeight() - content.height() + 1);
+					content.height(contentHeight);
+				}
+
+				if (window.map && window.map instanceof OpenLayers.Map) {
+					check = false;
+					map.updateSize();
+				} else {
+					// initialize map
+					/*init(function(feature) { 
+						selectedFeature = feature; 
+						$.mobile.changePage("#popup", "pop"); 
+					});*/
+					check = true;
+					//initMap();
+				}
+				return check;
+			}
+			$(window).bind("orientationchange resize pageshow", fixContentHeight);
+		</script>
+	</body>
+</html>
