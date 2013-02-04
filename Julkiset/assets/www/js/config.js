@@ -3,3 +3,4 @@ var apiPass = 'pass';
 var apiUrl = 'http://api.reittiopas.fi/hsl/prod/?user='+apiUser+'&pass='+apiPass+'&';
 
 var version = '0.4';
+$('.versionID').append(version);

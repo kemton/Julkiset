@@ -7,7 +7,6 @@
 		<!-- Deploying OpenLayers: http://docs.openlayers.org/library/deploying.html -->
 		<link rel="stylesheet" href="jquery.mobile-1.2.0.min.css" />
 		<link rel="stylesheet" href="style.css" />
-		<script src="js/config.js"></script>
 		<script type="text/javascript">
         		console.firebug=true;//fix the openlayer problem
 		</script>
@@ -23,7 +22,7 @@
 		<div data-role="page" id="routeOptions">
 			<div data-theme="a" data-role="header">
 				<a href="home.html" data-icon="home" data-ajax="false" data-direction="reverse">Etusivu</a>
-				<h3>Julkiset Beta 0.4</h3>
+				<h3>Julkiset Beta <span class="versionID"></span></h3>
 			</div>
 			
 			<div data-role="content">
@@ -41,7 +40,7 @@
 		<div data-role="page" id="legs">
 			<div data-theme="a" data-role="header">
 				<a onclick="back()" data-icon="home" data-ajax="false" data-direction="reverse">Takaisin</a>
-				<h3>Julkiset Beta 0.4</h3>
+				<h3>Julkiset Beta <span class="versionID"></span></h3>
 			</div>
 			
 			<div data-role="content">
@@ -67,6 +66,7 @@
 			</div>
 		</div><!-- /Route Legs Page -->
 		
+		<script src="js/config.js"></script>
 		<script type="text/javascript">
 			var from = new Object();
 			var to = new Object();
