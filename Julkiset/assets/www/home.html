@@ -12,6 +12,9 @@
 		<link rel="stylesheet" href="style.css" />
 		<script src="js/jquery.min.js"></script>
         <script src="js/jquery.mobile-1.2.0.min.js"></script>
+        
+        <link href="css/mobiscroll.datetime-2.4.1.min.css" rel="stylesheet" type="text/css" />
+		<script src="js/mobiscroll.datetime-2.4.1.min.js" type="text/javascript"></script>
     </head>
     <body>
         <!-- Home -->
@@ -34,8 +37,21 @@
 							<input id="to" name="to" placeholder="Kohde" value="" type="text" />
 						</fieldset>
 					</div>
+					
+					<fieldset data-role="controlgroup" data-type="horizontal">
+					     	<input type="radio" name="routeTimeType" id="radio-choice-1" value="departure" checked="checked" />
+					     	<label for="radio-choice-1">Lähtöaika</label>
+					
+					     	<input type="radio" name="routeTimeType" id="radio-choice-2" value="arrival"  />
+					     	<label for="radio-choice-2">Perillä</label>
+					</fieldset>
+					
+					<input type="text" name="time" id="time" placeholder="Kello" />
+					<input type="text" name="date" id="date" placeholder="Päivämäärä" />
+					
 					<!--<button data-theme="b" data-icon="arrow-r" data-iconpos="right" onclick="findRoute(this.form)">Hae reitti</button>-->
 					<a href="#addressList" data-theme="b" data-role="button" data-rel="dialog" onclick="fromToLoc(this.form)">Hae reitti</a>
+					
 				</form>
 			</div> <!-- /content -->
 			
@@ -58,23 +74,24 @@
 				<h3></h3>
 			</div>
 		</div><!-- /page -->
-		
 		<script src="js/config.js"></script>
 		<script type="text/javascript">
 			var from = new Object();
 			var to = new Object();
+			var routeTimeType;
 			
 			function fromToLoc(form, select) {
 				$("#result").empty();
 				key = $("#from").val();
+				routeTimeType = form.routeTimeType; // <<- Tai jotain vastaavaa
 				from = locOptions(key, 'from');
 			}
 			
 			function locOptions(key, select) {
 				$("#result").append('<li data-role="list-divider">Paikka</li>');
 				var loc = new Object();
-				//$.getJSON("data/"+key+".json",
-				$.getJSON(apiUrl+"request=geocode&format=json&epsg_out=wgs84&key="+key,
+				$.getJSON("data/"+key+".json",
+				//$.getJSON(apiUrl+"request=geocode&format=json&epsg_out=wgs84&key="+key,
 				function(data){
 					$.each(data, function(i, value){
 						$("<li>", {
@@ -130,6 +147,37 @@
 				}).appendTo("#findRoute");
 				$("#findRoute").submit();
 			}
+			$(function(){
+				var currentTime = new Date();
+				var month = currentTime.getMonth() + 1;
+				var day = currentTime.getDate();
+				var year = currentTime.getFullYear();
+				$("#date").val(day+"."+month+"."+year);
+				
+				var hours = currentTime.getHours()
+				var minutes = currentTime.getMinutes()
+				$("#time").val(hours+":"+minutes);
+				
+			    // Mobiscroll.com
+			    $("#date").mobiscroll().date({
+			    	display: 'modal',
+			    	theme: 'android-ics',
+			    	dateOrder: 'ddmmyy',
+			    	dateFormat: 'dd.mm.yy',
+			    	dayText: 'Päivä',
+			    	monthText: 'Kuukausi',
+			    	yearText: 'Vuosi',
+			    	startYear: 2012
+			    });
+			    $("#time").mobiscroll().time({
+			    	display: 'modal',
+			    	theme: 'android-ics',
+			    	timeFormat: 'HH:ii',
+			    	timeWheels: 'HHii',
+			    	minuteText: 'Minuutti',
+			    	hourText: 'Tunti',
+			    });
+			});
 		</script>
     </body>
 </html>
