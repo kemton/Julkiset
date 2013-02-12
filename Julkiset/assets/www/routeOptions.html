@@ -73,6 +73,7 @@
 			$(function(){
 				from.address = decodeURIComponent(urlParam('from')).replace('+',' ');
 				to.address = decodeURIComponent(urlParam('to')).replace('+',' ');
+				param = 'timetype'+urlParam('routeTimeType')+'&date'+urlParam('date')+'&time'+urlParam('time');
 				
 				$("#from").append(from.address);
 				$("#to").append(to.address);
@@ -82,7 +83,7 @@
 				to.lon = urlParam('toLon');
 				to.lat = urlParam('toLat');
 				
-				routeList(from.lon, from.lat, to.lon, to.lat);
+				routeList(from.lon, from.lat, to.lon, to.lat, param);
 			});
 			
 			function back() {
@@ -99,10 +100,10 @@
 				}
 			}
 			
-			function routeList(fromLon, fromLat, toLon, toLat) {
+			function routeList(fromLon, fromLat, toLon, toLat, param) {
 				var list = $("#options");
 				//$.getJSON("data/route.json",
-				$.getJSON(apiUrl+"request=route&format=json&from="+fromLon+","+fromLat+"&to="+toLon+","+toLat+"&show=5&epsg_in=wgs84&epsg_out=wgs84",
+				$.getJSON(apiUrl+"request=route&format=json&from="+fromLon+","+fromLat+"&to="+toLon+","+toLat+"&show=5&epsg_in=wgs84&epsg_out=wgs84&"+param,
 				function(data) {
 				leg = data;
 					$.each(data, function(i, value) {

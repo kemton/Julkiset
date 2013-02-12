@@ -1,6 +1,6 @@
 package com.nikokiuru.julkiset;
 
-import android.content.pm.ActivityInfo;
+//import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Menu;
 import org.apache.cordova.*;

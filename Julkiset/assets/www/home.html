@@ -60,7 +60,7 @@
 				</form>
 			</div> <!-- /content -->
 			
-			<div data-theme="a" data-role="footer" data-position="fixed">
+			<div data-theme="a" data-role="footer" data-position="fixed" data-tap-toggle="false">
 				<h3>&copy; 2013 NikoKiuru.com</h3>
 			</div>
 		</div> <!-- /home -->
@@ -82,7 +82,7 @@
 		
 		<script src="js/jquery.min.js"></script>
 		<script src="js/jquery.mobile-1.2.0.min.js"></script>
-		<script src="js/config.js"></script><script src="js/jquery.min.js"></script>
+		<script src="js/config.js"></script>
 		<script src="js/mobiscroll.datetime-2.4.1.min.js" type="text/javascript"></script>
 		<script type="text/javascript">
 			var from = new Object();
@@ -91,7 +91,8 @@
 			function fromToLoc(form, select) {
 				$("#result").empty();
 				key = $("#from").val();
-				routeTimeType = form.routeTimeType; // <<- Tai jotain vastaavaa
+				//routeTimeType = form.routeTimeType; // <<- Tai jotain vastaavaa
+				//buildAndSubmitForm();
 				from = locOptions(key, 'from');
 			}
 			
@@ -153,17 +154,32 @@
 					"name": "toLat",
 					"val": to.lat,
 				}).appendTo("#findRoute");
+				
+				var scrollDate = $("#date").val();
+				var day = scrollDate.substr(0,2);
+				var month = scrollDate.substr(3,2);
+				var year = scrollDate.substr(6,4);
+				$("#date").val(year+''+month+''+day);
+				
+				var scrollTime = $("#time").val();
+				var hours = scrollTime.substr(0,2);
+				var minutes = scrollTime.substr(3,2);
+				$("#time").val(hours+''+minutes);
+				
 				$("#findRoute").submit();
 			}
+			
+			function twoDigit(n){return n<10? '0'+n:''+n;} // Change date two digit format
+			
 			$(function(){
 				var currentTime = new Date();
-				var month = currentTime.getMonth() + 1;
-				var day = currentTime.getDate();
+				var day = twoDigit(currentTime.getDate());
+				var month = twoDigit(currentTime.getMonth() + 1);
 				var year = currentTime.getFullYear();
 				$("#date").val(day+"."+month+"."+year);
 				
-				var hours = currentTime.getHours()
-				var minutes = currentTime.getMinutes()
+				var hours = twoDigit(currentTime.getHours());
+				var minutes = twoDigit(currentTime.getMinutes());
 				$("#time").val(hours+":"+minutes);
 				
 			    // Mobiscroll.com
