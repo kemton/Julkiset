@@ -73,7 +73,7 @@
 			$(function(){
 				from.address = decodeURIComponent(urlParam('from')).replace('+',' ');
 				to.address = decodeURIComponent(urlParam('to')).replace('+',' ');
-				param = 'timetype'+urlParam('routeTimeType')+'&date'+urlParam('date')+'&time'+urlParam('time');
+				param = 'timetype='+urlParam('routeTimeType')+'&date='+urlParam('date')+'&time='+urlParam('time');
 				
 				$("#from").append(from.address);
 				$("#to").append(to.address);
@@ -152,14 +152,15 @@
 			}
 			
 			function getVehicleName(code, typeid) {
+				var name = typeid;
 				if (typeid == 'walk') {
 					name = '';
 				} else if (typeid == 1 || typeid == 3 || typeid == 4 || typeid == 5 || typeid == 22 || typeid == 25 || typeid == 36 || typeid == 39) {
-					var name = code.substr(2,3);
+					name = code.substr(2,3);
+				} else if (typeid == 6) {
+					name = 'Metro'; 
 				} else if (typeid == 12) {
-					var name = code.substr(4,1)+'-juna';
-				} else {
-					name = typeid;
+					name = code.substr(4,1)+'-juna';
 				}
 				return name;
 			}
